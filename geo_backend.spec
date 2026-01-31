@@ -21,6 +21,14 @@ if sys.platform == 'win32':
     binaries += collect_dynamic_libs('pywin32')
     hiddenimports += ['pywintypes', 'pythoncom']
 
+# Add conda's SQLite library explicitly (has all symbols GDAL needs)
+if sys.platform == 'darwin':
+    conda_prefix = os.environ.get('CONDA_PREFIX', '')
+    if conda_prefix:
+        sqlite_lib = os.path.join(conda_prefix, 'lib', 'libsqlite3.dylib')
+        if os.path.exists(sqlite_lib):
+            binaries.append((sqlite_lib, '.'))
+
 a = Analysis(
     [str(ROOT / 'backend' / '__main__.py')],
     pathex=[str(ROOT)],
@@ -51,7 +59,6 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
-a.binaries = [x for x in a.binaries if not x[0].startswith('libsqlite3')]
 pyz = PYZ(a.pure)
 
 exe = EXE(
