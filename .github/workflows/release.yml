@@ -113,7 +113,8 @@ jobs:
         run: |
           cd electron
           if [[ "${{ matrix.rosetta }}" == "true" ]]; then
-            arch -x86_64 npx electron-builder --mac --x64
+            # Skip DMG for x64 under Rosetta - hdiutil has compatibility issues
+            arch -x86_64 npx electron-builder --mac --x64 -c.mac.target=zip
           elif [[ "${{ matrix.platform }}" == "mac" ]]; then
             npx electron-builder --mac --arm64
           else
