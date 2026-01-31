@@ -258,10 +258,12 @@ def export_csv():
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
-def main(port=8964):
-    print(f"Starting Geo Analyzer backend on http://localhost:{port}")
-    print(f"Frontend: {FRONTEND_DIR}")
-    print(f"exactextract available: {HAS_EXACT}")
+def main():
+    port = int(os.environ.get("GEO_PORT", 8964))
+    print(f"Starting Geo Analyzer backend on http://127.0.0.1:{port}", flush=True)
+    print(f"Frontend: {FRONTEND_DIR}", flush=True)
+    print(f"exactextract available: {HAS_EXACT}", flush=True)
+    sys.stdout.flush()
     app.run(host="127.0.0.1", port=port, debug=False, threaded=True)
 
 
