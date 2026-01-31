@@ -1,0 +1,17 @@
+{
+  "name": "geo-analyzer",
+  "version": "1.0.0",
+  "description": "GeoTIFF population/raster radius analyzer",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "build": "python build/build.py"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0"
+  }
+}

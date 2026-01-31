@@ -1,0 +1,19 @@
+{
+  "name": "geo-analyzer-electron",
+  "version": "1.0.0",
+  "main": "main.js",
+  "devDependencies": {
+    "electron": "^28.0.0"
+  },
+  "build": {
+    "directories": {
+      "output": "../dist"
+    },
+    "extraResources": [
+      {
+        "from": "../dist/backend_bin/geo_backend",
+        "to": "backend"
+      }
+    ]
+  }
+}

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Geo Analyzer</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- App CSS -->
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<div id="chart-modal" class="chart-modal hidden" role="dialog" aria-modal="true">
+    <div class="chart-modal-backdrop"></div>
+    <div class="chart-modal-content">
+        <div class="chart-modal-header">
+            <h2 id="chart-modal-title">Chart</h2>
+            <div class="chart-modal-controls">
+                <select id="chart-type-select" class="chart-control-select">
+                    <option value="bar">Bar Chart</option>
+                    <option value="pie">Pie / Doughnut</option>
+                </select>
+                <select id="chart-stat-select" class="chart-control-select">
+                    <!-- Populated dynamically -->
+                </select>
+                <button id="export-chart-png" class="chart-control-btn" title="Save as PNG">
+                    📷 Save PNG
+                </button>
+                <button id="chart-modal-close" class="chart-close-btn" title="Close">✕</button>
+            </div>
+        </div>
+        <div class="chart-modal-body">
+            <canvas id="results-chart"></canvas>
+        </div>
+        <div class="chart-modal-footer">
+            <span id="chart-modal-subtitle" class="chart-subtitle"></span>
+        </div>
+    </div>
+</div>
+
+<body>
+
+<!-- ─── HEADER ─────────────────────────────────────────────────────── -->
+<header id="app-header">
+    <div class="header-left">
+        <h1>🌍 Geo Analyzer</h1>
+        <span id="status-badge" class="badge badge-loading">connecting…</span>
+    </div>
+    <div class="header-right">
+        <label class="file-upload-btn">
+            📂 Load GeoTIFF
+            <input type="file" id="file-input" accept=".tif,.tiff" hidden />
+        </label>
+        <span id="file-name" class="file-name">No file loaded</span>
+    </div>
+</header>
+
+<!-- ─── RASTER INFO BAR ────────────────────────────────────────────── -->
+<div id="raster-info" class="raster-info hidden">
+    <span id="raster-crs"></span>
+    <span id="raster-size"></span>
+    <span id="raster-res"></span>
+    <span id="raster-nodata"></span>
+</div>
+
+<!-- ─── MAIN LAYOUT ────────────────────────────────────────────────── -->
+<div id="main-container">
+
+    <!-- LEFT PANEL: Controls -->
+    <aside id="controls-panel">
+
+        <!-- Tab buttons -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="circle">🔵 Circle</button>
+            <button class="tab-btn" data-tab="band">🟡 Band</button>
+            <button class="tab-btn" data-tab="rect">🟩 Rect</button>
+            <button class="tab-btn" data-tab="compare">📊 Compare</button>
+        </nav>
+
+        <!-- Shared controls -->
+        <div class="control-group">
+            <label>Statistics</label>
+            <div id="stat-checkboxes" class="checkbox-group">
+                <label><input type="checkbox" value="sum" checked /> Sum</label>
+                <label><input type="checkbox" value="mean" /> Mean</label>
+                <label><input type="checkbox" value="max" /> Max</label>
+                <label><input type="checkbox" value="min" /> Min</label>
+                <label><input type="checkbox" value="count" /> Count</label>
+                <label><input type="checkbox" value="stdev" /> StdDev</label>
+                <label><input type="checkbox" value="median" /> Median</label>
+            </div>
+            <label>Band: <input type="number" id="band-input" value="1"
+                                min="1" max="20" /></label>
+        </div>
+
+        <!-- ── Circle Tab ── -->
+        <div class="tab-content active" data-tab="circle">
+            <h3>Circle Query</h3>
+            <div class="control-group">
+                <label>Latitude
+                    <input type="text" id="circle-lat" value="12° 49' 47.25&quot; N"
+                           placeholder="12.8298 or DMS" />
+                </label>
+                <label>Longitude
+                    <input type="text" id="circle-lon" value="101° 2' 3.57&quot; E"
+                           placeholder="101.034 or DMS" />
+                </label>
+                <label>Radii (km, comma-separated)
+                    <input type="text" id="circle-radii" value="1, 2.5, 5, 10, 25, 50" />
+                </label>
+                <p class="hint">💡 Click the map to set the point</p>
+                <button class="run-btn" id="run-circle">▶ Run Circle Query</button>
+            </div>
+        </div>
+
+        <!-- ── Band Tab ── -->
+        <div class="tab-content" data-tab="band">
+            <h3>Band (Annulus) Query</h3>
+            <div class="control-group">
+                <label>Latitude
+                    <input type="text" id="band-lat" value="12.8298" />
+                </label>
+                <label>Longitude
+                    <input type="text" id="band-lon" value="101.034" />
+                </label>
+                <label>Band edges (km)
+                    <input type="text" id="band-edges" value="0, 5, 10, 25, 50" />
+                </label>
+                <p class="hint">💡 Click the map to set the point</p>
+                <button class="run-btn" id="run-band">▶ Run Band Query</button>
+            </div>
+        </div>
+
+        <!-- ── Rect Tab ── -->
+        <div class="tab-content" data-tab="rect">
+            <h3>Rectangle Query</h3>
+            <div class="control-group">
+                <label>Latitude
+                    <input type="text" id="rect-lat" value="12.8298" />
+                </label>
+                <label>Longitude
+                    <input type="text" id="rect-lon" value="101.034" />
+                </label>
+                <label>Half-width (km)
+                    <input type="number" id="rect-hw" value="10" min="0.5"
+                           step="0.5" />
+                </label>
+                <label>Half-height (km)
+                    <input type="number" id="rect-hh" value="10" min="0.5"
+                           step="0.5" />
+                </label>
+                <p class="hint">💡 Click the map to set the center</p>
+                <button class="run-btn" id="run-rect">▶ Run Rect Query</button>
+            </div>
+        </div>
+
+        <!-- ── Compare Tab ── -->
+        <div class="tab-content" data-tab="compare">
+            <h3>Multi-Point Compare</h3>
+            <div class="control-group">
+                <label>Points (name, lat, lon — one per line)
+                    <textarea id="compare-points" rows="5"
+>Pattaya, 12.9236, 100.8825
+Bangkok, 13.7563, 100.5018
+Chiang Mai, 18.7883, 98.9853</textarea>
+                </label>
+                <label>Radius (km)
+                    <input type="number" id="compare-radius" value="10"
+                           min="0.5" step="0.5" />
+                </label>
+                <button class="run-btn" id="run-compare">▶ Run Comparison</button>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- RIGHT PANEL: Map + Results -->
+    <main id="content-panel">
+        <div id="map-container">
+            <div id="map"></div>
+            <div id="map-coords" class="map-overlay">—</div>
+        </div>
+        <div id="results-panel" class="hidden">
+            <div class="results-header">
+                <h3>Results</h3>
+                <div class="results-actions">
+                    <button id="view-chart-btn" class="chart-open-btn" disabled>📊 View Chart</button>
+                    <button id="export-csv" class="export-btn" title="Export data as CSV">⬇ CSV</button>
+                    <button id="clear-results" class="clear-btn">✕ Clear</button>
+                </div>
+            </div>
+            <div id="results-table-wrap">
+                <table id="results-table"><tbody></tbody></table>
+            </div>
+        </div>
+    </main>
+
+</div>
+
+<!-- ─── LOADING OVERLAY ────────────────────────────────────────────── -->
+<div id="loading-overlay" class="hidden">
+    <div class="spinner"></div>
+    <p id="loading-text">Processing…</p>
+</div>
+
+<!-- ─── SCRIPTS ────────────────────────────────────────────────────── -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="/js/utils.js"></script>
+<script src="/js/map.js"></script>
+<script src="/js/charts.js"></script>
+<script src="/js/app.js"></script>
+
+</body>
+</html>
