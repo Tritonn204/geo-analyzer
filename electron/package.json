@@ -18,41 +18,14 @@
       }
     ],
     "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        },
-        {
-          "target": "zip",
-          "arch": ["x64"]
-        }
-      ]
+      "target": ["nsis", "zip"]
     },
     "mac": {
-      "target": [
-        {
-          "target": "dmg",
-          "arch": ["x64", "arm64"]
-        },
-        {
-          "target": "zip",
-          "arch": ["x64", "arm64"]
-        }
-      ],
+      "target": ["dmg", "zip"],
       "category": "public.app-category.utilities"
     },
     "linux": {
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": ["x64", "arm64"]
-        },
-        {
-          "target": "tar.gz",
-          "arch": ["x64", "arm64"]
-        }
-      ],
+      "target": ["AppImage", "tar.gz"],
       "category": "Science"
     }
   }

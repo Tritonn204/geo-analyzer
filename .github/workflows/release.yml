@@ -23,22 +23,27 @@ jobs:
             platform: win
             arch: x64
             artifact_name: windows-x64
+            rosetta: false
           - os: ubuntu-latest
             platform: linux
             arch: x64
             artifact_name: linux-x64
+            rosetta: false
           - os: ubuntu-24.04-arm
             platform: linux
             arch: arm64
             artifact_name: linux-arm64
-          - os: macos-13
+            rosetta: false
+          - os: macos-latest
             platform: mac
             arch: x64
             artifact_name: macos-x64
-          - os: macos-14
+            rosetta: true
+          - os: macos-latest
             platform: mac
             arch: arm64
             artifact_name: macos-arm64
+            rosetta: false
 
     runs-on: ${{ matrix.os }}
 
@@ -59,6 +64,16 @@ jobs:
           python-version: '3.11'
           activate-environment: build
           channels: conda-forge
+          # For macOS x64 on ARM runner, force x64 architecture
+          architecture: ${{ matrix.rosetta && 'x64' || '' }}
+
+      # For macOS x64 build on ARM runner: configure conda for x86_64
+      - name: Configure Conda for x86_64 (Rosetta)
+        if: matrix.rosetta
+        shell: bash -el {0}
+        run: |
+          conda config --env --set subdir osx-64
+          conda deactivate && conda activate build
 
       - name: Install GDAL and Python deps (conda)
         shell: bash -el {0}
@@ -84,12 +99,26 @@ jobs:
         shell: bash -el {0}
         run: |
           mkdir -p dist/backend_bin
-          python -m PyInstaller --noconfirm --clean --distpath dist/backend_bin geo_backend.spec
+          if [[ "${{ matrix.rosetta }}" == "true" ]]; then
+            arch -x86_64 python -m PyInstaller --noconfirm --clean --distpath dist/backend_bin geo_backend.spec
+          else
+            python -m PyInstaller --noconfirm --clean --distpath dist/backend_bin geo_backend.spec
+          fi
 
       - name: Build Electron app
         shell: bash -el {0}
+        env:
+          # Tell electron-builder which arch to build
+          BUILD_ARCH: ${{ matrix.arch }}
         run: |
-          cd electron && npx electron-builder
+          cd electron
+          if [[ "${{ matrix.rosetta }}" == "true" ]]; then
+            arch -x86_64 npx electron-builder --mac --x64
+          elif [[ "${{ matrix.platform }}" == "mac" ]]; then
+            npx electron-builder --mac --arm64
+          else
+            npx electron-builder
+          fi
 
       - name: List dist contents
         shell: bash
