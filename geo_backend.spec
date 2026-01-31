@@ -51,6 +51,7 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
+a.binaries = [x for x in a.binaries if not x[0].startswith('libsqlite3')]
 pyz = PYZ(a.pure)
 
 exe = EXE(
