@@ -2,7 +2,9 @@
 node_modules/
 dist/
 
-# Ignore all build outputs *except* root build scripts
 build/*
-!build/
-!build/**
+!build/*.py
+!build/*.sh
+!build/*.bat
+
+.DS_Store

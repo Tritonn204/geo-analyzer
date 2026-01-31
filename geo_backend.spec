@@ -42,7 +42,7 @@ a = Analysis(
         # Testing - not needed in prod
         'pytest', 'unittest', 'nose', 'coverage',
         # Build tools - not needed at runtime
-        'setuptools', 'pip', 'wheel', 'distutils',
+        'setuptools', 'pip', 'wheel',
         # ML frameworks - not needed
         'torch', 'tensorflow', 'keras', 'sklearn', 'scipy',
         # Other heavy packages unlikely to be needed
