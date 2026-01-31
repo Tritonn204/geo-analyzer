@@ -78,7 +78,7 @@ jobs:
       - name: Install GDAL and Python deps (conda)
         shell: bash -el {0}
         run: |
-          conda install -y gdal rasterio pyproj geopandas shapely numpy pandas
+          conda install -y gdal rasterio pyproj geopandas shapely numpy pandas "sqlite>=3.37"
 
       - name: Install remaining Python deps
         shell: bash -el {0}
