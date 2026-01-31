@@ -6,6 +6,8 @@
     "electron": "^28.0.0"
   },
   "build": {
+    "appId": "com.geoanalyzer.app",
+    "productName": "Geo Analyzer",
     "directories": {
       "output": "../dist"
     },
@@ -14,6 +16,44 @@
         "from": "../dist/backend_bin/geo_backend",
         "to": "backend"
       }
-    ]
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "category": "public.app-category.utilities"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "tar.gz",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "category": "Science"
+    }
   }
 }
