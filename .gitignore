@@ -1,4 +1,8 @@
 .venv
 node_modules/
-build/
 dist/
+
+# Ignore all build outputs *except* root build scripts
+build/*
+!build/
+!build/**
