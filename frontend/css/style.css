@@ -219,15 +219,30 @@ html, body {
 }
 .map-overlay {
     position: absolute;
-    bottom: 8px;
-    left: 8px;
     background: rgba(22, 33, 62, 0.85);
     padding: 4px 10px;
     border-radius: 4px;
     font-size: 11px;
     color: var(--text-dim);
     z-index: 1000;
+}
+#map-coords {
+    bottom: 8px;
+    left: 8px;
     pointer-events: none;
+}
+.map-style-btn {
+    bottom: 8px;
+    right: 8px;
+    padding: 6px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, transform 0.1s;
+}
+.map-style-btn:hover {
+    background: rgba(22, 33, 62, 1);
+    transform: scale(1.05);
 }
 
 /* ─── Results Panel ───────────────────────────────────────────────── */

@@ -434,6 +434,11 @@ const App = (() => {
         // Results controls
         $("#export-csv").addEventListener("click", exportCSV);
         $("#clear-results").addEventListener("click", clearResults);
+
+        // Map style toggle
+        $("#map-style-toggle").addEventListener("click", () => {
+            MapManager.toggleMapStyle();
+        });
     }
 
     return { init };

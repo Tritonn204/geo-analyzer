@@ -8,6 +8,19 @@ const MapManager = (() => {
     let resultsLayer = null;
     let markerLayer = null;
     let queryMarker = null;
+    let currentTileLayer = null;
+    let currentStyle = "light";
+
+    const TILE_LAYERS = {
+        dark: {
+            url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+            attribution: '© OpenStreetMap © CARTO',
+        },
+        light: {
+            url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+            attribution: '© OpenStreetMap © CARTO',
+        },
+    };
 
     const COLORS = [
         "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
@@ -22,8 +35,8 @@ const MapManager = (() => {
             zoomControl: true,
         });
 
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-            attribution: '© OpenStreetMap © CARTO',
+        currentTileLayer = L.tileLayer(TILE_LAYERS.light.url, {
+            attribution: TILE_LAYERS.light.attribution,
             maxZoom: 19,
         }).addTo(map);
 
@@ -60,17 +73,18 @@ const MapManager = (() => {
         const worldRing = [[-90, -180], [-90, 180], [90, 180], [90, -180]];
         const holeRing = boundsPolygon.map(c => [c[1], c[0]]); // [lat, lon]
 
+        const isLight = currentStyle === "light";
         maskLayer = L.polygon([worldRing, holeRing], {
-            color: "#666",
+            color: isLight ? "#999" : "#666",
             weight: 1,
-            fillColor: "#111",
-            fillOpacity: 0.65,
+            fillColor: isLight ? "#fff" : "#111",
+            fillOpacity: isLight ? 0.75 : 0.65,
             interactive: false,
         }).addTo(map);
 
         // Raster boundary outline
         boundsLayer = L.polygon(holeRing, {
-            color: "#00cc66",
+            color: isLight ? "#009944" : "#00cc66",
             weight: 2,
             dashArray: "6 4",
             fillOpacity: 0,
@@ -128,8 +142,9 @@ const MapManager = (() => {
                 style: {
                     color: color,
                     weight: 2.5,
+                    opacity: 0.4,
                     fillColor: color,
-                    fillOpacity: 0.10,
+                    fillOpacity: 0.1,
                 },
             }).bindTooltip(r.label);
             resultsLayer.addLayer(geoLayer);
@@ -168,8 +183,50 @@ const MapManager = (() => {
         if (map) setTimeout(() => map.invalidateSize(), 100);
     }
 
+    function setMapStyle(style) {
+        if (!TILE_LAYERS[style] || style === currentStyle) return;
+
+        currentStyle = style;
+
+        if (currentTileLayer) {
+            map.removeLayer(currentTileLayer);
+        }
+
+        currentTileLayer = L.tileLayer(TILE_LAYERS[style].url, {
+            attribution: TILE_LAYERS[style].attribution,
+            maxZoom: 19,
+        }).addTo(map);
+
+        // Move tile layer to back so overlays stay on top
+        currentTileLayer.bringToBack();
+
+        // Update mask colors for light/dark mode
+        if (maskLayer) {
+            maskLayer.setStyle({
+                fillColor: style === "light" ? "#fff" : "#111",
+                fillOpacity: style === "light" ? 0.75 : 0.65,
+                color: style === "light" ? "#999" : "#666",
+            });
+        }
+        if (boundsLayer) {
+            boundsLayer.setStyle({
+                color: style === "light" ? "#009944" : "#00cc66",
+            });
+        }
+    }
+
+    function getMapStyle() {
+        return currentStyle;
+    }
+
+    function toggleMapStyle() {
+        setMapStyle(currentStyle === "dark" ? "light" : "dark");
+        return currentStyle;
+    }
+
     return {
         init, onMapClick, showRasterBounds, clearRasterBounds,
         setQueryPoint, showResults, clearResults, invalidateSize,
+        setMapStyle, getMapStyle, toggleMapStyle,
     };
 })();
