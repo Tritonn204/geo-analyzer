@@ -21,6 +21,8 @@ html, body {
     background: var(--bg);
     color: var(--text);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ─── Header ──────────────────────────────────────────────────────── */
@@ -87,7 +89,8 @@ html, body {
 /* ─── Main Layout ─────────────────────────────────────────────────── */
 #main-container {
     display: flex;
-    height: calc(100vh - 52px);
+    flex: 1;
+    min-height: 0; /* Allow flex children to shrink below content size */
 }
 
 /* ─── Controls Panel ──────────────────────────────────────────────── */
@@ -259,13 +262,31 @@ html, body {
 .clear-btn:hover { background: var(--danger); border-color: var(--danger); }
 
 #results-table-wrap {
-    overflow: auto;
+    display: flex;
+    flex-direction: column;
     max-height: 200px;
+    overflow: hidden;
 }
 #results-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 12px;
+}
+#results-table thead {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    flex-shrink: 0;
+}
+#results-table tbody {
+    display: block;
+    overflow-y: auto;
+    max-height: calc(200px - 29px); /* wrapper max-height minus header row height */
+}
+#results-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
 }
 #results-table th,
 #results-table td {
@@ -275,8 +296,6 @@ html, body {
     white-space: nowrap;
 }
 #results-table th {
-    position: sticky;
-    top: 0;
     background: var(--bg-card);
     color: var(--text-dim);
     font-weight: 600;
